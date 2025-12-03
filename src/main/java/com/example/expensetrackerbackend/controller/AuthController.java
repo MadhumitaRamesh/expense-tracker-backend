@@ -2,10 +2,7 @@ package com.example.expensetrackerbackend.controller;
 
 import com.example.expensetrackerbackend.model.User;
 import com.example.expensetrackerbackend.repository.UserRepository;
-import com.example.expensetrackerbackend.util.Decrypt;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -15,66 +12,43 @@ import java.util.Date;
 import java.util.Map;
 
 @RestController
-@CrossOrigin(origins = "http://localhost:3000") // Allow frontend
+@CrossOrigin(origins = "http://localhost:3000")
 public class AuthController {
 
-    @Autowired
-    private UserRepository userRepository;
-
+    @Autowired private UserRepository userRepository;
     private final BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
-    private final ObjectMapper mapper = new ObjectMapper();
 
-    // REGISTER
     @PostMapping("/api/register")
-    public ResponseEntity<String> register(@RequestBody String encryptedData) {
-        try {
-            String json = Decrypt.decrypt(encryptedData); // Decrypt what frontend sent
-            Map<String, String> data = mapper.readValue(json, Map.class);
+    public ResponseEntity<String> register(@RequestBody Map<String, String> body) {
+        String username = body.get("username");
+        String password = body.get("password");
 
-            String username = data.get("username");
-            String rawPassword = data.get("password");
-
-            if (userRepository.findByUsername(username) != null) {
-                return ResponseEntity.badRequest().body("Username already taken");
-            }
-
-            User user = new User();
-            user.setUsername(username);
-            user.setPassword(encoder.encode(rawPassword)); // Save hashed password
-            userRepository.save(user);
-
-            return ResponseEntity.ok("Registered successfully");
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body("Error: " + e.getMessage());
+        if (userRepository.findByUsername(username) != null) {
+            return ResponseEntity.badRequest().body("Username exists");
         }
+        User user = new User();
+        user.setUsername(username);
+        user.setPassword(encoder.encode(password));
+        userRepository.save(user);
+        return ResponseEntity.ok("Registered");
     }
 
-    // LOGIN
     @PostMapping("/api/login")
-    public ResponseEntity<?> login(@RequestBody String encryptedData) {
-        try {
-            String json = Decrypt.decrypt(encryptedData);
-            Map<String, String> data = mapper.readValue(json, Map.class);
+    public ResponseEntity<?> login(@RequestBody Map<String, String> body) {
+        String username = body.get("username");
+        String password = body.get("password");
 
-            String username = data.get("username");
-            String rawPassword = data.get("password");
-
-            User user = userRepository.findByUsername(username);
-            if (user == null || !encoder.matches(rawPassword, user.getPassword())) {
-                return ResponseEntity.badRequest().body(Map.of("error", "Wrong username or password"));
-            }
-
-            // Create JWT token (boss's authorisation mechanism)
-            String token = Jwts.builder()
-                    .setSubject(username)
-                    .setIssuedAt(new Date())
-                    .setExpiration(new Date(System.currentTimeMillis() + 86400000)) // 24 hours
-                    .signWith(SignatureAlgorithm.HS512, "mysecretkey123")
-                    .compact();
-
-            return ResponseEntity.ok(Map.of("token", token));
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body(Map.of("error", "Login failed"));
+        User user = userRepository.findByUsername(username);
+        if (user == null || !encoder.matches(password, user.getPassword())) {
+            return ResponseEntity.badRequest().body("Wrong username or password");
         }
+
+        String token = Jwts.builder()
+                .setSubject(username)
+                .setExpiration(new Date(System.currentTimeMillis() + 86400000))
+                .signWith(io.jsonwebtoken.SignatureAlgorithm.HS512, "anysecretkey")
+                .compact();
+
+        return ResponseEntity.ok(Map.of("token", token));
     }
 }
