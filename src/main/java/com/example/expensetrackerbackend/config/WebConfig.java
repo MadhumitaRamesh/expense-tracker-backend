@@ -9,8 +9,11 @@ public class WebConfig implements WebMvcConfigurer {
     @Override
     public void addCorsMappings(CorsRegistry registry) {
         registry.addMapping("/**")
-                .allowedOriginPatterns("http://localhost:3000", System.getenv("FRONTEND_URL")) // Allow localhost and env var
-                .allowedMethods("GET","POST","PUT","DELETE","OPTIONS")
+                .allowedOrigins(
+                    "http://localhost:3000",  // Local development
+                    "https://expense-tracker-frontend-9mlg.onrender.com"  // Production frontend
+                )
+                .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
                 .allowedHeaders("*")
                 .allowCredentials(true)
                 .maxAge(3600);
