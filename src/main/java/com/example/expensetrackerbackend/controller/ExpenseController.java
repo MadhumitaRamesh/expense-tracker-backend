@@ -28,7 +28,9 @@ public class ExpenseController {
     @GetMapping
     public ResponseEntity<?> getExpenses() {
         try {
+            System.out.println("GET /api/expenses - Request received");
             String username = SecurityContextHolder.getContext().getAuthentication().getName();
+            System.out.println("Authenticated user: " + username);
             User user = userRepository.findByUsername(username);
             
             List<Expense> expenses = expenseRepository.findByUser(user);
