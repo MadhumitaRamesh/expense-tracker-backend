@@ -1,4 +1,4 @@
-package com.example.expense_tracker_backend;
+package com.example.expensetrackerbackend;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
