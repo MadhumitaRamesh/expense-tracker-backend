@@ -14,7 +14,7 @@ public class HealthController {
     public Map<String, String> health() {
         Map<String, String> status = new HashMap<>();
         status.put("status", "UP");
-        status.put("version", "v2-debug-403");
+        status.put("version", "v3-explicit-push");
         status.put("timestamp", String.valueOf(System.currentTimeMillis()));
         return status;
     }
