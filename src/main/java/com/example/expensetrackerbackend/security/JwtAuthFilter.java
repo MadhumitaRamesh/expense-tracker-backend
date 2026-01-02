@@ -35,32 +35,48 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 
         // Expect header: Authorization: Bearer <token>
         if (authHeader != null && authHeader.startsWith("Bearer ")) {
-            token = authHeader.substring(7);
+            token = authHeader.substring(7).trim();
+            System.out.println("Processing token: " + (token.length() > 10 ? token.substring(0, 10) + "..." : token));
             try {
                 username = jwtService.extractUsername(token);
+                System.out.println("Extracted username from token: " + username);
             } catch (Exception e) {
-                // invalid token → just continue, no authentication set
+                System.out.println("Failed to extract username from token: " + e.getMessage());
+            }
+        } else {
+            if (authHeader != null) {
+                System.out.println("Invalid Authorization header format: " + authHeader);
             }
         }
 
-        // If we got a username and no auth yet in context
         if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-            UserDetails userDetails = userDetailsService.loadUserByUsername(username);
-
-            if (jwtService.isTokenValid(token, userDetails.getUsername())) {
-                UsernamePasswordAuthenticationToken authToken =
-                        new UsernamePasswordAuthenticationToken(
-                                userDetails,
-                                null,
-                                userDetails.getAuthorities()
-                        );
-                authToken.setDetails(
-                        new WebAuthenticationDetailsSource().buildDetails(request)
-                );
-                SecurityContextHolder.getContext().setAuthentication(authToken);
+            try {
+                UserDetails userDetails = userDetailsService.loadUserByUsername(username);
+                if (jwtService.isTokenValid(token, userDetails.getUsername())) {
+                    System.out.println("Token is valid for user: " + username);
+                    UsernamePasswordAuthenticationToken authToken =
+                            new UsernamePasswordAuthenticationToken(
+                                    userDetails,
+                                    null,
+                                    userDetails.getAuthorities()
+                            );
+                    authToken.setDetails(
+                            new WebAuthenticationDetailsSource().buildDetails(request)
+                    );
+                    SecurityContextHolder.getContext().setAuthentication(authToken);
+                } else {
+                    System.out.println("Token is INVALID for user: " + username);
+                }
+            } catch (Exception e) {
+                System.out.println("Error loading user Details: " + e.getMessage());
             }
+        } else if (username != null) {
+            System.out.println("Authentication already set in SecurityContext for user: " + username);
+        } else {
+            System.out.println("No username extracted from token or no token present.");
         }
 
+        System.out.println("JwtAuthFilter - Finalizing request for: " + request.getRequestURI());
         filterChain.doFilter(request, response);
     }
 }
