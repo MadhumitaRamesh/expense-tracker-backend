@@ -54,8 +54,15 @@ public class ExpenseController {
     @PostMapping
     public ResponseEntity<?> addExpense(@RequestBody ExpenseDto expenseDto) {
         try {
+            System.out.println("POST /api/expenses - Request received");
             String username = SecurityContextHolder.getContext().getAuthentication().getName();
+            System.out.println("Authenticated user: " + username);
+            
             User user = userRepository.findByUsername(username);
+            if (user == null) {
+                System.out.println("User not found in database: " + username);
+                return ResponseEntity.status(401).body("User not found");
+            }
 
             Expense expense = new Expense();
             expense.setAmount(expenseDto.amount);
@@ -65,9 +72,12 @@ public class ExpenseController {
             expense.setUser(user);
 
             expenseRepository.save(expense);
+            System.out.println("Expense saved successfully for user: " + username);
             return ResponseEntity.ok("Expense saved successfully");
         } catch (Exception e) {
-            return ResponseEntity.status(500).body("Error saving expense");
+            System.err.println("Error saving expense: " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.status(500).body("Error saving expense: " + e.getMessage());
         }
     }
 
