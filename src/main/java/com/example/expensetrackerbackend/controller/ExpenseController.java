@@ -16,7 +16,6 @@ import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/expenses")
-@CrossOrigin(origins = "*") // Allow frontend access
 public class ExpenseController {
 
     @Autowired

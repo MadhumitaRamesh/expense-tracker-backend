@@ -58,18 +58,16 @@ public class SecurityConfig {
             )
             .exceptionHandling(ex -> ex
                 .authenticationEntryPoint((request, response, authException) -> {
-                    System.out.println("Unauthorized request to: " + request.getRequestURI());
-                    System.out.println("Error message: " + authException.getMessage());
+                    System.out.println("DEBUG: Unauthorized request or session expired to: " + request.getRequestURI());
                     response.setStatus(401);
-                    response.getWriter().write("Unauthorized: " + authException.getMessage());
+                    response.getWriter().write("Auth Error: " + authException.getMessage());
                 })
             )
             .authenticationProvider(authProvider())
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-                .requestMatchers("/api/auth/**", "/api/health").permitAll()
-                // ❗ Temporarily permitting all to /api/expenses to debug if 403 is CORS or AUTH related
-                .requestMatchers("/api/expenses/**").permitAll() 
+                .requestMatchers("/api/auth/**", "/api/health/**").permitAll()
+                .requestMatchers("/api/expenses/**", "/api/expenses").permitAll() // DEBUG: Allow all to expenses
                 .anyRequest().authenticated()
             );
 
@@ -81,13 +79,10 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        // Be very explicit with origins for production
-        configuration.setAllowedOrigins(Arrays.asList(
-            "http://localhost:3000",
-            "https://expense-tracker-frontend-9mlg.onrender.com"
-        ));
+        // DEBUG: Allow EVERYTHING to isolate if 403 is CORS-based
+        configuration.setAllowedOriginPatterns(Arrays.asList("*")); 
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-        configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type", "Cache-Control", "X-Requested-With"));
+        configuration.setAllowedHeaders(Arrays.asList("*")); // Allow all headers
         configuration.setAllowCredentials(true);
         configuration.setMaxAge(3600L);
         
