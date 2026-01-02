@@ -30,23 +30,22 @@ public class JwtAuthFilter extends OncePerRequestFilter {
             throws ServletException, IOException {
 
         final String authHeader = request.getHeader("Authorization");
+        System.out.println("DEBUG: incoming request to " + request.getRequestURI());
         String token = null;
         String username = null;
 
         // Expect header: Authorization: Bearer <token>
         if (authHeader != null && authHeader.startsWith("Bearer ")) {
             token = authHeader.substring(7).trim();
-            System.out.println("Processing token: " + (token.length() > 10 ? token.substring(0, 10) + "..." : token));
+            System.out.println("DEBUG: Token found, length: " + token.length());
             try {
                 username = jwtService.extractUsername(token);
-                System.out.println("Extracted username from token: " + username);
+                System.out.println("DEBUG: Extracted username: " + username);
             } catch (Exception e) {
-                System.out.println("Failed to extract username from token: " + e.getMessage());
+                System.out.println("DEBUG: Failed to extract username: " + e.getMessage());
             }
         } else {
-            if (authHeader != null) {
-                System.out.println("Invalid Authorization header format: " + authHeader);
-            }
+            System.out.println("DEBUG: No Bearer token in Authorization header. Header exists: " + (authHeader != null));
         }
 
         if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
