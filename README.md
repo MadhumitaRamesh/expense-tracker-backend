@@ -39,4 +39,4 @@ GET  /api/dashboard/data
 
  Requirements
 • Java 17 or above  
-• PostgreSQL installed  
+• PostgreSQL installed.
