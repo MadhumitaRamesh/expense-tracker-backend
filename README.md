@@ -4,9 +4,9 @@ This is the backend of the project built using Java Spring Boot.
 It handles user registration, login authentication, password encryption, and database operations.
 
  Features
-• Login authentication using encrypted passwords  
-• PostgreSQL database connection  
-• CRUD operations for the dashboard  
+• Login authentication using encrypted passwords.  
+• PostgreSQL database connection.  
+• CRUD operations for the dashboard.  
 • JWT-based authentication (optional upgrade)  
 
  Tech Stack
